@@ -7,6 +7,11 @@ import sttp.tapir.swagger.bundle.SwaggerInterpreter
 import sttp.tapir.generic.auto.*
 import io.circe.generic.auto.*
 import sttp.tapir.json.circe.*
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
+import cats.Id
+
+given ExecutionContext = scala.concurrent.ExecutionContext.global
 
 case class HelloRequest(name: String)
 object HelloRequest:
@@ -17,7 +22,7 @@ object HelloRequest:
     .in("hello")
     .in(query[String]("name"))
     .out(stringBody)
-    .handleSuccess(name => s"Hello, $name!")
+    .serverLogicSuccess[Id](it => s"Hello, $it!")
 
   val e2 = endpoint.post
     .in("hello")

@@ -10,5 +10,8 @@ lazy val root = project
     libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-core" % "1.11.12",
     libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.11.12",
     libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-bundle" % "1.11.12",
-    libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % "1.11.12"
+    libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-json-circe" % "1.11.12",
+    libraryDependencies ++= Seq(
+      "com.softwaremill.ox" %% "core" % "0.5.8"
+    )
   )
