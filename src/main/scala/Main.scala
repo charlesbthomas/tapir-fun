@@ -10,6 +10,8 @@ import sttp.tapir.json.circe.*
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import cats.Id
+import pureconfig.ConfigSource
+import pureconfig._
 
 given ExecutionContext = scala.concurrent.ExecutionContext.global
 
@@ -17,29 +19,34 @@ case class HelloRequest(name: String)
 object HelloRequest:
   def input = jsonBody[HelloRequest]
 
-@main def hello: Unit =
-  val e1 = endpoint.get
-    .in("hello")
-    .in(query[String]("name"))
-    .out(stringBody)
-    .serverLogicSuccess[Id](it => s"Hello, $it!")
+object Program:
+  val conf = ConfigSource.default
+    .load[AppConfig]
+    .getOrElse(throw new Exception("Config error"))
 
-  val e2 = endpoint.post
-    .in("hello")
-    .in(HelloRequest.input)
-    .out(stringBody)
-    .handleSuccess(req => s"Hello, ${req.name}!")
+  @main def hello: Unit =
+    val e1 = endpoint.get
+      .in("hello")
+      .in(query[String]("name"))
+      .out(stringBody)
+      .serverLogicSuccess[Id](it => s"Hello, $it!")
 
-  val appEndpoints = List(e1, e2)
+    val e2 = endpoint.post
+      .in("hello")
+      .in(HelloRequest.input)
+      .out(stringBody)
+      .handleSuccess(req => s"Hello, ${req.name}!")
 
-  val swaggerEndpoints =
-    SwaggerInterpreter().fromServerEndpoints(appEndpoints, "My App", "1.0")
+    val appEndpoints = List(e1, e2)
 
-  val allEndpoints = swaggerEndpoints ++ appEndpoints
+    val swaggerEndpoints =
+      SwaggerInterpreter().fromServerEndpoints(appEndpoints, "My App", "1.0")
 
-  allEndpoints.foreach(it => println(it.show))
+    val allEndpoints = swaggerEndpoints ++ appEndpoints
 
-  NettySyncServer()
-    .addEndpoints(allEndpoints)
-    .port(8080)
-    .startAndWait()
+    allEndpoints.foreach(it => println(it.show))
+
+    NettySyncServer()
+      .addEndpoints(allEndpoints)
+      .port(conf.port)
+      .startAndWait()
