@@ -12,6 +12,8 @@ import scala.concurrent.ExecutionContext
 import cats.Id
 import pureconfig.ConfigSource
 import pureconfig._
+import com.softwaremill.macwire._
+import dev.parvus.db.Databases
 
 given ExecutionContext = scala.concurrent.ExecutionContext.global
 
@@ -20,6 +22,8 @@ object HelloRequest:
   def input = jsonBody[HelloRequest]
 
 object Program:
+  val db = Databases.default
+
   val conf = ConfigSource.default
     .load[AppConfig]
     .getOrElse(throw new Exception("Config error"))

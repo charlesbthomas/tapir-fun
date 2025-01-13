@@ -25,5 +25,6 @@ lazy val root = project
     ),
 
     // Conf
-    libraryDependencies += "com.github.pureconfig" %% "pureconfig-core" % "0.17.8"
+    libraryDependencies += "com.github.pureconfig" %% "pureconfig-core" % "0.17.8",
+    libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.6.4" % "provided"
   )
