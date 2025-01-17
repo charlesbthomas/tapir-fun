@@ -18,16 +18,18 @@ import dev.parvus.controllers.*
 import sttp.tapir.server.ServerEndpoint
 import sttp.shared.Identity
 import ox.supervised
+import dev.parvus.db.Databases.PostgresDatabase
 
 given ExecutionContext = scala.concurrent.ExecutionContext.global
 
-object Main:
+trait DatabaseDeps:
+  def db: PostgresDatabase
+
+object Main extends App with DatabaseDeps:
   val conf = ConfigSource.default
     .load[AppConfig]
     .getOrElse(throw new Exception("Config error"))
-
-  val db = Databases.default
-
+  val db: PostgresDatabase = Databases.default
   lazy val helloWorldEndpoints = wire[HelloWorldController]
 
   @main def start: Unit =

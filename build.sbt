@@ -25,6 +25,9 @@ lazy val root = project
       "org.postgresql" % "postgresql" % "42.3.1"
     ),
 
+    // Trying out quill too
+    libraryDependencies += "io.getquill" %% "quill-jdbc" % "4.8.5",
+
     // Conf
     libraryDependencies += "com.github.pureconfig" %% "pureconfig-core" % "0.17.8",
     libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.6.4" % "provided"

@@ -13,6 +13,9 @@ import scala.concurrent.ExecutionContext
 
 extension [T](inline f: Future[T]) inline def await: T = awaitWithChannel(f)
 
+extension [T](inline f: Future[Option[T]])
+  inline def awaitOpt: Option[T] = awaitWithChannel(f)
+
 private def awaitWithChannel[T](f: => Future[T]): T = supervised {
   given ExecutionContext = scala.concurrent.ExecutionContext.global
   val channel = Channel.rendezvous[T]
