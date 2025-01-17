@@ -1,4 +1,4 @@
-package dev.parvus
+package dev.parvus.util
 
 import scala.concurrent.Future
 import ox.Ox
@@ -9,10 +9,12 @@ import ox.get
 import scala.util.Success
 import scala.util.Failure
 import ox.get
+import scala.concurrent.ExecutionContext
 
 extension [T](inline f: Future[T]) inline def await: T = awaitWithChannel(f)
 
-private def awaitWithChannel[T](f: => Future[T]): T = {
+private def awaitWithChannel[T](f: => Future[T]): T = supervised {
+  given ExecutionContext = scala.concurrent.ExecutionContext.global
   val channel = Channel.rendezvous[T]
   f.onComplete {
     case Success(value) =>

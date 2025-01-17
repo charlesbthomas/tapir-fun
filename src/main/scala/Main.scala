@@ -9,48 +9,35 @@ import io.circe.generic.auto.*
 import sttp.tapir.json.circe.*
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
-import cats.Id
 import pureconfig.ConfigSource
 import pureconfig._
 import com.softwaremill.macwire._
 import dev.parvus.db.Databases
 
+import dev.parvus.controllers.*
+import sttp.tapir.server.ServerEndpoint
+import sttp.shared.Identity
+import ox.supervised
+
 given ExecutionContext = scala.concurrent.ExecutionContext.global
 
-case class HelloRequest(name: String)
-object HelloRequest:
-  def input = jsonBody[HelloRequest]
-
-object Program:
-  val db = Databases.default
-
+object Main:
   val conf = ConfigSource.default
     .load[AppConfig]
     .getOrElse(throw new Exception("Config error"))
 
-  @main def hello: Unit =
-    val e1 = endpoint.get
-      .in("hello")
-      .in(query[String]("name"))
-      .out(stringBody)
-      .serverLogicSuccess[Id](it => s"Hello, $it!")
+  val db = Databases.default
 
-    val e2 = endpoint.post
-      .in("hello")
-      .in(HelloRequest.input)
-      .out(stringBody)
-      .handleSuccess(req => s"Hello, ${req.name}!")
+  lazy val helloWorldEndpoints = wire[HelloWorldController]
 
-    val appEndpoints = List(e1, e2)
+  @main def start: Unit =
+    val appEndpoints: List[ServerEndpoint[Any, Identity]] =
+      helloWorldEndpoints.endpoints
 
-    val swaggerEndpoints =
-      SwaggerInterpreter().fromServerEndpoints(appEndpoints, "My App", "1.0")
-
-    val allEndpoints = swaggerEndpoints ++ appEndpoints
-
-    allEndpoints.foreach(it => println(it.show))
+    val swagger = SwaggerInterpreter()
+      .fromServerEndpoints(appEndpoints, "Parvus", "1.0")
 
     NettySyncServer()
-      .addEndpoints(allEndpoints)
+      .addEndpoints(appEndpoints ++ swagger)
       .port(conf.port)
       .startAndWait()
