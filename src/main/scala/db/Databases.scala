@@ -12,7 +12,6 @@ import dev.parvus.DatabaseInstance
 import slick.jdbc.PostgresProfile
 
 object Databases:
-
   type PostgresDatabase = PostgresProfile.backend.Database
 
   private lazy val instance = ConfigSource.default
@@ -20,9 +19,10 @@ object Databases:
     .load[DatabaseInstance]
     .getOrElse(throw new Exception("Config error"))
 
-  private lazy val hikariDataSource = new HikariDataSource(
+  lazy val hikariDataSource: DataSource = new HikariDataSource(
     instance.toHikariConfig
   )
+
   lazy val default: PostgresDatabase = Database.forDataSource(
     hikariDataSource,
     Some(10)

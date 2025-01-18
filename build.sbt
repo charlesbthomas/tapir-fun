@@ -1,5 +1,8 @@
 val scala3Version = "3.6.2"
 
+lazy val runMigrate = taskKey[Unit]("Migrates the database schema.")
+addCommandAlias("run-db-migrations", "runMigrate")
+
 lazy val root = project
   .in(file("."))
   .settings(
@@ -17,12 +20,19 @@ lazy val root = project
       "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.11.12"
     ),
 
-    // Slick DB
+    // Logging
+    libraryDependencies ++= Seq(
+      "ch.qos.logback" % "logback-classic" % "1.3.5",
+      "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
+    ),
+
+    // Postgres Stuff
     libraryDependencies ++= Seq(
       "com.typesafe.slick" %% "slick" % "3.5.1",
-      "org.slf4j" % "slf4j-nop" % "1.7.26",
       "com.typesafe.slick" %% "slick-hikaricp" % "3.5.1",
-      "org.postgresql" % "postgresql" % "42.3.1"
+      "org.postgresql" % "postgresql" % "42.3.1",
+      "org.flywaydb" % "flyway-core" % "10.22.0",
+      "org.flywaydb" % "flyway-database-postgresql" % "10.22.0"
     ),
 
     // Trying out quill too
@@ -30,5 +40,9 @@ lazy val root = project
 
     // Conf
     libraryDependencies += "com.github.pureconfig" %% "pureconfig-core" % "0.17.8",
-    libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.6.4" % "provided"
+    libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.6.4" % "provided",
+
+    // Database migrations
+    fullRunTask(runMigrate, Compile, "dev.parvus.RunPostgresMigrations"),
+    fork in runMigrate := true
   )
