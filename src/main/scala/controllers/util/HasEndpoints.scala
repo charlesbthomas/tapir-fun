@@ -1,4 +1,4 @@
-package dev.parvus.controllers
+package dev.parvus.controllers.util
 
 import sttp.tapir.Endpoint
 import sttp.tapir.server.ServerEndpoint

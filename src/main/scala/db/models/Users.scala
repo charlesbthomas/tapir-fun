@@ -5,9 +5,11 @@ import java.util.UUID
 import java.time.Instant
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
 import dev.parvus.db.util.EntityUtils.*
+import sttp.tapir.Schema
+
 final case class UserPreferences(
     darkMode: Option[Boolean]
-)
+) derives Schema
 
 final case class User(
     id: UUID,
@@ -19,6 +21,7 @@ final case class User(
     updatedAt: Instant,
     preferences: Option[UserPreferences]
 ) extends Entity
+    derives Schema
 
 class Users(tag: Tag) extends EntityTable[User](tag, "users") {
   def id = column[UUID]("id", O.PrimaryKey)
@@ -28,7 +31,8 @@ class Users(tag: Tag) extends EntityTable[User](tag, "users") {
   def lastName = column[Option[String]]("last_name")
   def createdAt = column[Instant]("created_at")
   def updatedAt = column[Instant]("updated_at")
-  def preferences = column[Option[UserPreferences]]("preferences")
+  def preferences =
+    column[Option[UserPreferences]]("preferences", O.SqlType("JSONB"))
   def * = (
     id,
     email,

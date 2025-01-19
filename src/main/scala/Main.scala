@@ -17,29 +17,37 @@ import dev.parvus.db.Databases
 import dev.parvus.controllers.*
 import sttp.tapir.server.ServerEndpoint
 import sttp.shared.Identity
-import ox.supervised
 import dev.parvus.db.Databases.PostgresDatabase
+import dev.parvus.db.repositories.Repositories
+import dev.parvus.services.UserServiceImpl
 
 given ExecutionContext = scala.concurrent.ExecutionContext.global
 
 trait DatabaseDeps:
   def db: PostgresDatabase
 
-object Main extends App with DatabaseDeps:
+object Main extends App with DatabaseDeps with Repositories:
   val conf = ConfigSource.default
     .load[AppConfig]
     .getOrElse(throw new Exception("Config error"))
-  val db: PostgresDatabase = Databases.default
+
+  // Database Layers
+  override val db: PostgresDatabase = Databases.default
+
+  // Service Layers
+  lazy val userService = wire[UserServiceImpl]
+
+  // Endpoint Layers
   lazy val helloWorldEndpoints = wire[HelloWorldController]
+  lazy val authEndpoints = wire[AuthEndpoints]
 
-  @main def start: Unit =
-    val appEndpoints: List[ServerEndpoint[Any, Identity]] =
-      helloWorldEndpoints.endpoints
+  val appEndpoints: List[ServerEndpoint[Any, Identity]] =
+    helloWorldEndpoints.endpoints ++ authEndpoints.endpoints
 
-    val swagger = SwaggerInterpreter()
-      .fromServerEndpoints(appEndpoints, "Parvus", "1.0")
+  val swagger = SwaggerInterpreter()
+    .fromServerEndpoints(appEndpoints, "Parvus", "1.0")
 
-    NettySyncServer()
-      .addEndpoints(appEndpoints ++ swagger)
-      .port(conf.port)
-      .startAndWait()
+  NettySyncServer()
+    .addEndpoints(appEndpoints ++ swagger)
+    .port(conf.port)
+    .startAndWait()

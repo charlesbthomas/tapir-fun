@@ -4,8 +4,10 @@ import sttp.tapir.json.circe.*
 import io.circe.generic.auto.*
 import sttp.tapir.Schema
 import sttp.tapir.*
+import dev.parvus.controllers.util.HasEndpoints
 
 case class HelloRequest(name: String) derives Schema
+
 object HelloRequest:
   def input = jsonBody[HelloRequest]
 

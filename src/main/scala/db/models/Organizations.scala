@@ -5,6 +5,7 @@ import java.util.UUID
 import java.time.Instant
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
 import dev.parvus.db.util.EntityUtils.*
+import sttp.tapir.Schema
 
 final case class Organization(
     id: UUID,
@@ -12,6 +13,7 @@ final case class Organization(
     createdAt: Instant,
     updatedAt: Instant
 ) extends Entity
+    derives Schema
 
 class Organizations(tag: Tag)
     extends EntityTable[Organization](tag, "organizations") {
