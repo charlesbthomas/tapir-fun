@@ -1,6 +1,6 @@
 package dev.parvus.db.models
 
-import slick.jdbc.PostgresProfile.api._
+import dev.parvus.db.util.PostgresProfile.api._
 import java.util.UUID
 import java.time.Instant
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._

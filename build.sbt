@@ -30,6 +30,8 @@ lazy val root = project
     libraryDependencies ++= Seq(
       "com.typesafe.slick" %% "slick" % "3.5.1",
       "com.typesafe.slick" %% "slick-hikaricp" % "3.5.1",
+      "com.github.tminglei" %% "slick-pg" % "0.22.2",
+      "com.github.tminglei" %% "slick-pg_circe-json" % "0.22.2",
       "org.postgresql" % "postgresql" % "42.3.1",
       "org.flywaydb" % "flyway-core" % "10.22.0",
       "org.flywaydb" % "flyway-database-postgresql" % "10.22.0"
