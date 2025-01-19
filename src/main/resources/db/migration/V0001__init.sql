@@ -1,13 +1,14 @@
 create table users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash TEXT,
     first_name VARCHAR(100),
+    middle_name VARCHAR(100),
     last_name VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    profile_info JSONB DEFAULT '{}'
+    preferences JSONB DEFAULT '{}'
 );
+create unique index users_email_idx on users(email);
 
 create table organizations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -31,8 +32,8 @@ create table sessions (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     session_token TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    expires_at TIMESTAMP NOT NULL,
 );
 
 create table user_organizations (
