@@ -14,6 +14,7 @@ import dev.parvus.db.util.PostgresProfile.api.*
 import dev.parvus.db.models.Organizations
 import scala.concurrent.ExecutionContext
 import dev.parvus.db.util.*
+import dev.parvus.util.*
 
 given ExecutionContext = ExecutionContext.parasitic
 
@@ -24,6 +25,7 @@ case class RegisterUserInput(
     email: String,
     password: Option[String]
 ) derives Schema
+
 case class RegisterUserOutput(user: User, organization: Option[Organization])
     derives Schema
 
@@ -42,7 +44,6 @@ class UserServiceImpl(
   given PostgresDatabase = db
 
   def register(input: RegisterUserInput): RegisterUserOutput =
-
     val user = User(
       id = java.util.UUID.randomUUID(),
       email = input.email,
@@ -53,6 +54,7 @@ class UserServiceImpl(
       updatedAt = java.time.Instant.now(),
       preferences = None
     )
+
     val organization = Organization(
       id = java.util.UUID.randomUUID(),
       name = s"${user.firstName}'s Organization",
@@ -60,22 +62,12 @@ class UserServiceImpl(
       updatedAt = java.time.Instant.now()
     )
 
-    // val q = (
-    //   for
-    //     createdUserId <- Users.create(user)
-    //     createdOrgId <- Organizations.create(organization)
-    //   yield ((createdUserId, createdOrgId))
-    // ).transactionally
-
-    val createdUserId = repo.create(user)
-    val createdOrgId = organizationRepo.create(
-      Organization(
-        id = java.util.UUID.randomUUID(),
-        name = s"${user.firstName}'s Organization",
-        createdAt = java.time.Instant.now(),
-        updatedAt = java.time.Instant.now()
-      )
-    )
+    val (createdUserId, createdOrgId) = transaction.run {
+      for
+        createdUserId <- Users.create(user)
+        createdOrgId <- Organizations.create(organization)
+      yield ((createdUserId, createdOrgId))
+    }
 
     RegisterUserOutput(
       user.copy(id = createdUserId),
