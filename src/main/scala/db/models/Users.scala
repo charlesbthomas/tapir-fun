@@ -1,12 +1,14 @@
 package dev.parvus.db.models
 
 import dev.parvus.db.util.PostgresProfile.api._
+import dev.parvus.db.util.PostgresProfile
 
 import java.util.UUID
 import java.time.Instant
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
 import dev.parvus.db.util.EntityUtils.*
 import sttp.tapir.Schema
+import slick.jdbc.JdbcType
 
 final case class UserPreferences(
     darkMode: Option[Boolean]
@@ -46,12 +48,15 @@ class Users(tag: Tag) extends EntityTable[User](tag, "users") {
   )
     .mapTo[User]
 
+  given BaseColumnType[Json] = PostgresProfile.MyAPI.circeJsonTypeMapper
   given UserPreferencesColumnType: BaseColumnType[UserPreferences] =
-    MappedColumnType.base[UserPreferences, String](
-      up => up.asJson.noSpaces,
-      column => decode[UserPreferences](column).right.get
+    MappedColumnType.base[UserPreferences, Json](
+      up => up.asJson,
+      column => column.as[UserPreferences].toOption.get
     )
 }
+
+object UsersTableQuery extends TableQuery(new Users(_))
 
 object Users extends EntityCrudQueries[User, Users]:
   def table = TableQuery[Users]
