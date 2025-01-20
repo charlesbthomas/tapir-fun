@@ -5,6 +5,7 @@ import java.util.UUID
 import java.time.Instant
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
 import dev.parvus.db.util.EntityUtils.*
+import dev.parvus.db.util.ColumnMappers
 
 final case class ProjectSettings(
     features: Map[String, Boolean]
@@ -36,14 +37,9 @@ class Projects(tag: Tag) extends EntityTable[Project](tag, "projects") {
     settings,
     createdAt,
     updatedAt
-  )
-    .mapTo[Project]
+  ).mapTo[Project]
 
-  given ProjectSettingsColumnType: BaseColumnType[ProjectSettings] =
-    MappedColumnType.base[ProjectSettings, String](
-      up => up.asJson.noSpaces,
-      column => decode[ProjectSettings](column).right.get
-    )
+  given BaseColumnType[ProjectSettings] = ColumnMappers.jsonb[ProjectSettings]
 }
 
 object Projects extends EntityCrudQueries[Project, Projects]:
