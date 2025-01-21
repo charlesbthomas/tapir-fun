@@ -44,6 +44,9 @@ lazy val root = project
     libraryDependencies += "com.github.pureconfig" %% "pureconfig-core" % "0.17.8",
     libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.6.4" % "provided",
 
+    // Crypto
+    libraryDependencies += "com.github.t3hnar" %% "scala-bcrypt" % "4.",
+
     // Database migrations
     fullRunTask(runMigrate, Compile, "dev.parvus.RunPostgresMigrations"),
     fork in runMigrate := true

@@ -6,10 +6,11 @@ import java.time.Instant
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
 import dev.parvus.db.util.EntityUtils.*
 import dev.parvus.db.util.ColumnMappers
+import sttp.tapir.Schema
 
 final case class ProjectSettings(
     features: Map[String, Boolean]
-)
+) derives Schema
 
 final case class Project(
     id: UUID,
@@ -20,6 +21,7 @@ final case class Project(
     createdAt: Instant,
     updatedAt: Instant
 ) extends Entity
+    derives Schema
 
 class Projects(tag: Tag) extends EntityTable[Project](tag, "projects") {
   def id = column[UUID]("id", O.PrimaryKey)

@@ -11,23 +11,32 @@ import sttp.tapir.Schema
 import sttp.tapir.json.circe.*
 import io.circe.generic.auto.*
 import dev.parvus.db.util.PostgresProfile.api.*
-import dev.parvus.db.models.Organizations
 import scala.concurrent.ExecutionContext
 import dev.parvus.db.util.*
 import dev.parvus.util.*
+import dev.parvus.db.models.Project
+import dev.parvus.db.models.Projects
 
 given ExecutionContext = ExecutionContext.parasitic
+
+case class RegisterUserOptions(
+    existingProjectId: Option[String],
+    projectName: Option[String]
+) derives Schema
 
 case class RegisterUserInput(
     firstName: String,
     middleName: Option[String],
     lastName: String,
     email: String,
-    password: Option[String]
+    password: Option[String],
+    options: Option[RegisterUserOptions]
 ) derives Schema
 
-case class RegisterUserOutput(user: User, organization: Option[Organization])
-    derives Schema
+case class RegisterUserOutput(
+    user: User,
+    project: Project
+) derives Schema
 
 case class LoginInput(email: String, password: String)
 case class UserSession(user: User, token: String)
@@ -38,7 +47,6 @@ trait UserService:
 
 class UserServiceImpl(
     private val repo: UserRepo,
-    private val organizationRepo: OrganizationRepo,
     private val db: PostgresDatabase
 ) extends UserService:
   given PostgresDatabase = db
@@ -52,26 +60,34 @@ class UserServiceImpl(
       lastName = Some(input.lastName),
       createdAt = java.time.Instant.now(),
       updatedAt = java.time.Instant.now(),
-      preferences = None
+      preferences = None password = input.password.map(PasswordHasher.hash)
     )
 
-    val organization = Organization(
+    val orgName = user.firstName
+      .map(n => s"${n}'s Organization")
+      .getOrElse("Default Organization")
+
+    val project = Project(
       id = java.util.UUID.randomUUID(),
-      name = s"${user.firstName}'s Organization",
+      name = "Default Project",
+      description = None,
+      settings = None,
       createdAt = java.time.Instant.now(),
       updatedAt = java.time.Instant.now()
     )
 
-    val (createdUserId, createdOrgId) = transaction.run {
+    val (createdUserId, createdOrgId, createdProjectId) = transaction.run {
       for
         createdUserId <- Users.create(user)
         createdOrgId <- Organizations.create(organization)
-      yield ((createdUserId, createdOrgId))
+        createdProjectId <- Projects.create(project)
+      yield ((createdUserId, createdOrgId, createdProjectId))
     }
 
     RegisterUserOutput(
       user.copy(id = createdUserId),
-      Some(organization.copy(id = createdOrgId))
+      Some(organization.copy(id = createdOrgId)),
+      Some(project.copy(id = createdProjectId))
     )
   end register
 

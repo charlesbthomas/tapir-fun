@@ -6,7 +6,8 @@ create table users (
     last_name VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    preferences JSONB DEFAULT '{}'
+    preferences JSONB DEFAULT '{}',
+    password_hash TEXT
 );
 create unique index users_email_idx on users(email);
 
@@ -19,7 +20,6 @@ create table organizations (
 
 create table projects (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     settings JSONB DEFAULT '{}',
@@ -36,16 +36,7 @@ create table sessions (
     expires_at TIMESTAMP NOT NULL
 );
 
-create table user_organizations (
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-    role VARCHAR(100) NOT NULL DEFAULT 'member', -- E.g., 'admin', 'member', etc.
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, organization_id)
-);
-
-create table user_projects (
+create table project_memberships (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     role VARCHAR(100) NOT NULL DEFAULT 'member', -- E.g., 'admin', 'member', etc.

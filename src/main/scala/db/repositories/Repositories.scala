@@ -11,10 +11,10 @@ class UserRepo(protected val db: PostgresDatabase)
   given queries: EntityCrudQueries[User, Users] = Users
 }
 
-class OrganizationRepo(protected val db: PostgresDatabase)
-    extends CrudRepo[Organization, Organizations] {
-  given queries: EntityCrudQueries[Organization, Organizations] = Organizations
-}
+// class OrganizationRepo(protected val db: PostgresDatabase)
+//     extends CrudRepo[Organization, Organizations] {
+//   given queries: EntityCrudQueries[Organization, Organizations] = Organizations
+// }
 
 class SessionRepo(protected val db: PostgresDatabase)
     extends CrudRepo[Session, Sessions] {
@@ -30,6 +30,5 @@ trait Repositories:
   def db: PostgresDatabase
 
   lazy val userRepo = wire[UserRepo]
-  lazy val organizationRepo = wire[OrganizationRepo]
   lazy val sessionRepo = wire[SessionRepo]
   lazy val projectRepo = wire[ProjectRepo]
