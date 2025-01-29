@@ -1,6 +1,5 @@
 package dev.parvus.services
 
-import dev.parvus.db.models.Organization
 import dev.parvus.db.models.User
 import dev.parvus.db.models.Users
 import dev.parvus.db.models.UsersTableQuery
@@ -16,6 +15,7 @@ import dev.parvus.db.util.*
 import dev.parvus.util.*
 import dev.parvus.db.models.Project
 import dev.parvus.db.models.Projects
+import dev.parvus.util.Argon2Hasher
 
 given ExecutionContext = ExecutionContext.parasitic
 
@@ -60,7 +60,8 @@ class UserServiceImpl(
       lastName = Some(input.lastName),
       createdAt = java.time.Instant.now(),
       updatedAt = java.time.Instant.now(),
-      preferences = None password = input.password.map(PasswordHasher.hash)
+      preferences = None,
+      password = input.password.map(Argon2Hasher.hashPassword)
     )
 
     val orgName = user.firstName
@@ -76,19 +77,34 @@ class UserServiceImpl(
       updatedAt = java.time.Instant.now()
     )
 
-    val (createdUserId, createdOrgId, createdProjectId) = transaction.run {
+    val (createdUserId, createdProjectId) = transaction.run {
       for
         createdUserId <- Users.create(user)
-        createdOrgId <- Organizations.create(organization)
         createdProjectId <- Projects.create(project)
-      yield ((createdUserId, createdOrgId, createdProjectId))
+      yield ((createdUserId, createdProjectId))
     }
 
     RegisterUserOutput(
       user.copy(id = createdUserId),
-      Some(organization.copy(id = createdOrgId)),
-      Some(project.copy(id = createdProjectId))
+      project.copy(id = createdProjectId)
     )
   end register
 
-  def login(input: LoginInput): UserSession = ???
+  def login(input: LoginInput): UserSession =
+    val user = transaction.run {
+      Users.table
+        .filter(_.email === input.email)
+        .result
+        .headOption
+    }
+
+    user match
+      case Some(u)
+          if u.password.isDefined &&
+            Argon2Hasher.checkPassword(
+              input.password,
+              u.password.get
+            ) =>
+        UserSession(u, java.util.UUID.randomUUID().toString)
+      case _ => throw new Exception("Invalid credentials")
+  end login

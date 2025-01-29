@@ -23,7 +23,8 @@ final case class User(
     lastName: Option[String],
     createdAt: Instant,
     updatedAt: Instant,
-    preferences: Option[UserPreferences]
+    preferences: Option[UserPreferences],
+    password: Option[String]
 ) extends Entity
     derives Schema
 
@@ -35,6 +36,7 @@ class Users(tag: Tag) extends EntityTable[User](tag, "users") {
   def lastName = column[Option[String]]("last_name")
   def createdAt = column[Instant]("created_at")
   def updatedAt = column[Instant]("updated_at")
+  def password = column[Option[String]]("password_hash")
   def preferences =
     column[Option[UserPreferences]]("preferences", O.SqlType("JSONB"))
   def * = (
@@ -45,7 +47,8 @@ class Users(tag: Tag) extends EntityTable[User](tag, "users") {
     lastName,
     createdAt,
     updatedAt,
-    preferences
+    preferences,
+    password
   )
     .mapTo[User]
 

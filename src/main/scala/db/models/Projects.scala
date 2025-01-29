@@ -14,7 +14,7 @@ final case class ProjectSettings(
 
 final case class Project(
     id: UUID,
-    organizationId: UUID,
+    // organizationId: UUID,
     name: String,
     description: Option[String],
     settings: Option[ProjectSettings],
@@ -25,7 +25,7 @@ final case class Project(
 
 class Projects(tag: Tag) extends EntityTable[Project](tag, "projects") {
   def id = column[UUID]("id", O.PrimaryKey)
-  def organizationId = column[UUID]("organization_id")
+  // def organizationId = column[UUID]("organization_id")
   def name = column[String]("name")
   def description = column[Option[String]]("description")
   def settings = column[Option[ProjectSettings]]("settings")
@@ -33,7 +33,7 @@ class Projects(tag: Tag) extends EntityTable[Project](tag, "projects") {
   def updatedAt = column[Instant]("updated_at")
   def * = (
     id,
-    organizationId,
+    // organizationId,
     name,
     description,
     settings,
