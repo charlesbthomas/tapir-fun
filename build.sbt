@@ -45,7 +45,7 @@ lazy val root = project
     libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.6.4" % "provided",
 
     // Crypto
-    libraryDependencies += "com.github.t3hnar" %% "scala-bcrypt" % "4.",
+    libraryDependencies += "de.mkammerer" % "argon2-jvm" % "2.11",
 
     // Database migrations
     fullRunTask(runMigrate, Compile, "dev.parvus.RunPostgresMigrations"),
