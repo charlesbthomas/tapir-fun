@@ -1,6 +1,10 @@
 package dev.parvus.workflows
 
 import java.sql.Date
+import ox.flow.Flow
+import scala.util.Try
+import scala.util.Success
+import scala.util.Failure
 
 sealed trait TriggerType
 case object APITrigger extends TriggerType
@@ -25,24 +29,46 @@ trait WorkflowNode:
   def parents: Set[Long]
 
 sealed trait WorkflowNodeState
-case object NotStarted extends WorkflowNodeState
+case object ToDo extends WorkflowNodeState
+case object Pending extends WorkflowNodeState
 case object Running extends WorkflowNodeState
 case object Completed extends WorkflowNodeState
-case object Failed extends WorkflowNodeState
-
-case class NodeExecutionState(
-    state: WorkflowNodeState,
-    lastSeen: Date
-)
 
 trait WorkflowInstance:
   def id: Long
   def template: WorkflowTemplate
   def triggerDate: Option[java.time.Instant]
-  def nodes: Map[Long, NodeExecutionState]
+  def nodes: Seq[WorkflowNode]
+
+trait WorkflowNodeVisitor:
+  def workflowInstanceId: Long
+  def nodeId: Long
+
+trait WorkflowQueueMessage[T]:
+  def message: T
+  def ack: Unit
+  def nack: Unit
 
 trait WorkflowQueue:
-  def dequeue: Option[WorkflowInstance]
+  def enqueue(workflow: WorkflowInstance): Unit
+  def stream: Flow[WorkflowQueueMessage[WorkflowNodeVisitor]]
 
-trait WorkflowExecutor:
-  def queue: WorkflowQueue
+trait WorkflowStorage:
+  def fetchInstance(instanceId: Long): Option[WorkflowInstance]
+  def markNodeAsCompleted(visitor: WorkflowNodeVisitor): Unit
+
+class WorkflowExecutor(queue: WorkflowQueue, storage: WorkflowStorage):
+  queue.stream
+    .mapPar(10)(message =>
+      Try {
+        val visitor = message.message
+        val instance = storage.fetchInstance(visitor.workflowInstanceId).get
+        val node = instance.nodes.find(_.id == visitor.nodeId).get
+        node.run()
+        storage.markNodeAsCompleted(visitor)
+        message.ack
+      }.recover { case e =>
+        message.nack
+      }
+    )
+    .runDrain()
