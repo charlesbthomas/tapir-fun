@@ -37,6 +37,9 @@ lazy val root = project
       "org.flywaydb" % "flyway-database-postgresql" % "10.22.0"
     ),
 
+    // Redis
+    libraryDependencies += "io.lettuce" % "lettuce-core" % "6.5.3.RELEASE",
+
     // Trying out quill too
     libraryDependencies += "io.getquill" %% "quill-jdbc" % "4.8.5",
 

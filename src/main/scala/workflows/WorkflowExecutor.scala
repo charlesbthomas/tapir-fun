@@ -11,12 +11,10 @@ trait WorkflowQueue:
 
 trait WorkflowStorage:
   def fetchInstance(instanceId: Long): Option[WorkflowInstance]
-
   def changeNodeStatus(
       node: WorkflowNodeVisitor,
       state: WorkflowNodeState
   ): Unit = changeNodeStatus(Seq(node), state)
-
   def changeNodeStatus(
       nodes: Seq[WorkflowNodeVisitor],
       state: WorkflowNodeState
