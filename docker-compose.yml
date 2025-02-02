@@ -1,6 +1,14 @@
 version: '3.5'
 
 services:
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   postgres:
     container_name: parvus_postgres 
     image: postgres
@@ -37,5 +45,6 @@ networks:
     driver: bridge
 
 volumes:
-    postgres:
-    pgadmin:
+  redis_data:
+  postgres:
+  pgadmin:

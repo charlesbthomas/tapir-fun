@@ -34,15 +34,15 @@ final class RedisWorkflowQueue(redis: RedisClient)
     }
   }
 
-  final override def cons: Flow[WorkflowQueueMessage[WorkflowNodeVisitor]] = {
+  final override def cons: Flow[WorkflowQueueMessage[WorkflowNodeVisitor]] =
     val groupConf =
       XReadArgs.StreamOffset.from(RedisWorkflowQueue.defaultQueueName, "0-0")
 
     try commands.xgroupCreate(groupConf, "consumer-group")
     catch case e: Exception => logger.info("Consumer group already exists")
 
-    Flow.usingEmit(emit => {
-      repeat(RepeatConfig.immediateForever()) {
+    Flow.usingEmit(emit =>
+      repeat(RepeatConfig.immediateForever()):
         val messages = commands
           .xreadgroup(
             Consumer.from("consumer-group", "consumer-1"),
@@ -69,15 +69,10 @@ final class RedisWorkflowQueue(redis: RedisClient)
             )
             emit(WorkflowQueueMessage(visitor, ack, nack))
           }
-      }
-    })
-  }
-end RedisWorkflowQueue
+    )
 
 object RedisWorkflowQueue:
   case class RedisWorkflowQueueConfig(queueName: Option[String])
       derives ConfigReader
-  val config = ConfigSource.default.loadOrThrow[RedisWorkflowQueueConfig]
+  lazy val config = ConfigSource.default.loadOrThrow[RedisWorkflowQueueConfig]
   lazy val defaultQueueName = config.queueName.getOrElse("workflow-queue")
-
-end RedisWorkflowQueue

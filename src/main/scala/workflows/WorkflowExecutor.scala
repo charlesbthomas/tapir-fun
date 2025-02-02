@@ -42,7 +42,7 @@ case class BasicWorkflowExecutor(
 
         val node = instance.nodes.find(_.id == visitor.nodeId).get
 
-        node.run() // TODO: typeclass this
+        // node.run() // TODO: typeclass this
 
         storage.changeNodeStatus(visitor, WorkflowNodeState.Completed)
 
