@@ -10,7 +10,7 @@ trait WorkflowQueue:
   def cons: Flow[WorkflowQueueMessage[WorkflowNodeVisitor]]
 
 trait WorkflowStorageProvider:
-  def getStorage(instanceId: Long): WorkflowStorage[NodeType]
+  def getStorage(instanceId: Long): WorkflowStorage[? <: NodeType]
 
 trait WorkflowStorage[T <: NodeType]:
   def fetchInstance(instanceId: Long): Option[WorkflowInstance[T]]

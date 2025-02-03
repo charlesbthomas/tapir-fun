@@ -14,3 +14,6 @@ case class WorkflowNode[T <: NodeType](
     node: T
 ) derives Encoder,
       Decoder
+
+trait WorkflowNodeProcessor[T <: NodeType]:
+  def process(node: WorkflowNode[T]): Unit
