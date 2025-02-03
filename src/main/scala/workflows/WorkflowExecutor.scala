@@ -9,8 +9,11 @@ trait WorkflowQueue:
   def pub(visitor: WorkflowNodeVisitor): Unit = pub(Seq(visitor))
   def cons: Flow[WorkflowQueueMessage[WorkflowNodeVisitor]]
 
-trait WorkflowStorage:
-  def fetchInstance(instanceId: Long): Option[WorkflowInstance]
+trait WorkflowStorageProvider:
+  def getStorage(instanceId: Long): WorkflowStorage[NodeType]
+
+trait WorkflowStorage[T <: NodeType]:
+  def fetchInstance(instanceId: Long): Option[WorkflowInstance[T]]
   def changeNodeStatus(
       node: WorkflowNodeVisitor,
       state: WorkflowNodeState
@@ -22,18 +25,24 @@ trait WorkflowStorage:
 
 trait WorkflowExecutor:
   def queue: WorkflowQueue
-  def storage: WorkflowStorage
+  def storageProvider: WorkflowStorageProvider
   def run(): Unit
 
 case class BasicWorkflowExecutor(
     val queue: WorkflowQueue,
-    val storage: WorkflowStorage
+    val storageProvider: WorkflowStorageProvider
 ) extends WorkflowExecutor:
+
   override def run(): Unit = queue.cons
-    .tap(m => storage.changeNodeStatus(m.message, WorkflowNodeState.Running))
+    .tap(m => {
+      storageProvider
+        .getStorage(m.message.workflowInstanceId)
+        .changeNodeStatus(m.message, WorkflowNodeState.Running)
+    })
     .mapPar(10)(message =>
       Try {
         val visitor = message.message
+        val storage = storageProvider.getStorage(visitor.workflowInstanceId)
 
         val instance =
           storage

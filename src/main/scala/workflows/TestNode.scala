@@ -1,18 +1,15 @@
 package dev.parvus.workflows
 
 import dev.parvus.workflows.domain.WorkflowNode
+import dev.parvus.workflows.domain.NodeType
 import io.circe.*
 
-case class TestNode(
-    id: Long,
-    name: String,
-    parent: Long
-) extends WorkflowNode
-    derives Encoder,
-      Decoder:
-  override def description: Option[String] = None
-  override def nodeType: String = TestNode.NodeType
+sealed trait TestWorkflowNode extends NodeType derives Encoder, Decoder
 
-object TestNode:
-  val NodeType = "TestNode"
-  WorkflowNode.registerDecoder(NodeType, summon[Decoder[TestNode]])
+case class TestNode(
+    data: String
+) extends TestWorkflowNode
+
+case class TestNode2(
+    data2: String
+) extends TestWorkflowNode

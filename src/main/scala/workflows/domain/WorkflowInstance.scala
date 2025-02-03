@@ -1,7 +1,7 @@
 package dev.parvus.workflows.domain
 
-trait WorkflowInstance:
+trait WorkflowInstance[T <: NodeType]:
   def id: Long
-  def template: WorkflowTemplate
+  // def template: WorkflowTemplate
   def triggerDate: Option[java.time.Instant]
-  def nodes: Seq[WorkflowNode]
+  def nodes: Seq[WorkflowNode[T]]

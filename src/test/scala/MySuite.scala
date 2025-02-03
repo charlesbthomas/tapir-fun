@@ -6,6 +6,7 @@ import io.circe.*
 import io.circe.parser.*
 import io.circe.syntax.*
 import dev.parvus.workflows.domain.WorkflowNode
+import dev.parvus.workflows.TestWorkflowNode
 
 class MySuite extends munit.FunSuite {
   test("example test that succeeds") {
@@ -15,7 +16,14 @@ class MySuite extends munit.FunSuite {
   }
 
   test("workflow node json serde?") {
-    val node = TestNode(1, "test", 0)
-    println(node.toJson)
+    val node = TestNode("hello")
+
+    val workflowNode: WorkflowNode[TestWorkflowNode] = WorkflowNode(1, 0, node)
+
+    val json = workflowNode.asJson
+
+    println(json)
+
+    val parsed = json.as[WorkflowNode[TestWorkflowNode]].toOption.get
   }
 }
