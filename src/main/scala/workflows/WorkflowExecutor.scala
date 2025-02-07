@@ -4,25 +4,6 @@ import scala.util.Try
 import ox.flow.Flow
 import dev.parvus.workflows.domain.*
 
-trait WorkflowQueue:
-  def pub(visitors: Seq[WorkflowNodeVisitor]): Unit
-  def pub(visitor: WorkflowNodeVisitor): Unit = pub(Seq(visitor))
-  def cons: Flow[WorkflowQueueMessage[WorkflowNodeVisitor]]
-
-trait WorkflowStorageProvider:
-  def getStorage(instanceId: Long): WorkflowStorage[? <: NodeType]
-
-trait WorkflowStorage[T <: NodeType]:
-  def fetchInstance(instanceId: Long): Option[WorkflowInstance[T]]
-  def changeNodeStatus(
-      node: WorkflowNodeVisitor,
-      state: WorkflowNodeState
-  ): Unit = changeNodeStatus(Seq(node), state)
-  def changeNodeStatus(
-      nodes: Seq[WorkflowNodeVisitor],
-      state: WorkflowNodeState
-  ): Unit
-
 trait WorkflowExecutor:
   def queue: WorkflowQueue
   def storageProvider: WorkflowStorageProvider
