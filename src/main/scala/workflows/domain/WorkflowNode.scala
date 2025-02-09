@@ -6,7 +6,13 @@ import io.circe.parser.*
 import io.circe.syntax.*
 import io.circe.generic.semiauto.*
 
+trait Node:
+  self: NodeType & NodeRunner[NodeType] =>
+
 trait NodeType
+
+trait NodeRunner[N <: NodeType]:
+  extension (node: N) def run: Unit
 
 case class WorkflowNode[T <: NodeType](
     id: Long,
